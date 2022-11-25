@@ -23,6 +23,7 @@ async function run() {
     try {
         const categoryNameAndItemCollection = client.db('buyAndSellBd').collection('categoryNameAndItem');
         const myOrderCollection = client.db('buyAndSellBd').collection('myOrders');
+        const usersCollection = client.db('buyAndSellBd').collection('users');
 
 
         app.get('/categories', async (req, res) => {
@@ -49,6 +50,12 @@ async function run() {
             const myOrder = req.body;
             // console.log(myOrder);
             const result = await myOrderCollection.insertOne(myOrder);
+            res.send(result);
+        })
+
+        app.post('/users', async(req, res)=> {
+            const user = req.body;
+            const result = await usersCollection.insertOne(user);
             res.send(result);
         })
 
