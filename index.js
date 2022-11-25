@@ -22,6 +22,8 @@ async function run() {
 
     try {
         const categoryNameAndItemCollection = client.db('buyAndSellBd').collection('categoryNameAndItem');
+        const myOrderCollection = client.db('buyAndSellBd').collection('myOrders');
+
 
         app.get('/categories', async (req, res) => {
             const query = {}
@@ -29,10 +31,17 @@ async function run() {
             res.send(categories);
         });
 
-        app.get('/categories/:id', async (req, res) => {
+        app.get('/categoryItems/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
             const result = await categoryNameAndItemCollection.findOne(query);
+            res.send(result);
+        })
+
+        app.post('/myOrders', async(req, res)=> {
+            const myOrder = req.body;
+            console.log(myOrder);
+            const result = await myOrderCollection.insertOne(myOrder);
             res.send(result);
         })
 
