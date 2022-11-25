@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 
 const port = process.env.PORT || 5000;
@@ -18,19 +18,27 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 
-async function run(){
+async function run() {
 
-    try{
-        const categoryNameAndItemCollection = client.db('buyAndSellBd').collection('categoryNameAndItem')
+    try {
+        const categoryNameAndItemCollection = client.db('buyAndSellBd').collection('categoryNameAndItem');
 
-        app.get('/categories', async(req, res)=> {
+        app.get('/categories', async (req, res) => {
             const query = {}
             const categories = await categoryNameAndItemCollection.find(query).toArray();
             res.send(categories);
+        });
+
+        app.get('/categories/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await categoryNameAndItemCollection.findOne(query);
+            res.send(result);
         })
+
     }
 
-    finally{
+    finally {
 
     }
 
@@ -40,7 +48,7 @@ run().catch(console.log);
 
 
 
-app.get('/', async(req, res)=> {
+app.get('/', async (req, res) => {
     res.send('Buy and Sell server is Running');
 })
 
