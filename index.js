@@ -20,17 +20,17 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 
-function verifyJWT(req, res, next){
+function verifyJWT(req, res, next) {
     const authHeader = req.headers.authorization;
-    if(!authHeader){
+    if (!authHeader) {
         return res.status(401).send('Unauthorized Access');
     }
 
     const token = authHeader.split(' ')[1];
 
-    jwt.verify(token, process.env.ACCESS_TOKEN, function(err, decoded){
-        if(err){
-            return res.status(403).send({message: 'Your access forbidden'});
+    jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
+        if (err) {
+            return res.status(403).send({ message: 'Your access forbidden' });
         }
         req.decoded = decoded;
         next();
@@ -59,62 +59,83 @@ async function run() {
             res.send(result);
         })
 
-        app.get('/myOrders', verifyJWT, async(req, res)=> {
+        app.get('/myOrders', verifyJWT, async (req, res) => {
             const email = req.query.email;
             const decodedEmail = req.decoded.email;
 
-            if(email !== decodedEmail){
-                return res.status(403).send({message: 'Your access forbidden'});
+            if (email !== decodedEmail) {
+                return res.status(403).send({ message: 'Your access forbidden' });
             }
 
-            const query = {email: email};
+            const query = { email: email };
             const myOrders = await myOrderCollection.find(query).toArray();
             res.send(myOrders);
         })
 
-        app.post('/myOrders', async(req, res)=> {
+        app.post('/myOrders', async (req, res) => {
             const myOrder = req.body;
             // console.log(myOrder);
             const result = await myOrderCollection.insertOne(myOrder);
             res.send(result);
         })
 
-        app.get('/users', async(req, res)=> {
+        app.get('/users', async (req, res) => {
             const query = {};
             const users = await usersCollection.find(query).toArray();
             res.send(users);
         })
-        
 
-        
-        app.post('/users', async(req, res)=> {
+
+
+        app.post('/users', async (req, res) => {
             const user = req.body;
             const result = await usersCollection.insertOne(user);
             res.send(result);
         })
 
-        app.get('/sellers', async(req, res)=> {
+        app.put('/users/admin/:id', verifyJWT, async (req, res) => {
+
+            const decodedEmail = req.decoded.email;
+            const query = {email: decodedEmail};
+            const user = await usersCollection.findOne(query);
+            if(user?.role !== 'admin'){
+                return res.status(403).send({ message: 'Your access forbidden' });
+            }
+
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const options = {upsert: true};
+            const updatedDoc = {
+                $set: {
+                    role: 'admin'
+                }
+            }
+            const result = await usersCollection.updateOne(filter, updatedDoc, options);
+            res.send(result);
+        })
+
+        app.get('/sellers', async (req, res) => {
             const query = {};
             const users = await sellersCollection.find(query).toArray();
             res.send(users);
         })
 
-        app.post('/sellers', async(req, res)=> {
+        app.post('/sellers', async (req, res) => {
             const user = req.body;
             const result = await sellersCollection.insertOne(user);
             res.send(result);
         })
-        
-        app.get('/jwt', async(req, res)=> {
+
+        app.get('/jwt', async (req, res) => {
             const email = req.query.email;
-            const query = {email: email};
+            const query = { email: email };
             const user = await usersCollection.findOne(query);
-            if(user){
-                const token = jwt.sign({email}, process.env.ACCESS_TOKEN, {expiresIn: '1h'})
-                return res.send({accessToken: token});
+            if (user) {
+                const token = jwt.sign({ email }, process.env.ACCESS_TOKEN, { expiresIn: '1h' })
+                return res.send({ accessToken: token });
             }
-            
-            res.status(403).send({accessToken: ''})
+
+            res.status(403).send({ accessToken: '' })
         })
 
     }
