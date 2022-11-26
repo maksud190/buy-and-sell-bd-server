@@ -43,6 +43,7 @@ async function run() {
         const categoryNameAndItemCollection = client.db('buyAndSellBd').collection('categoryNameAndItem');
         const myOrderCollection = client.db('buyAndSellBd').collection('myOrders');
         const usersCollection = client.db('buyAndSellBd').collection('users');
+        const sellersCollection = client.db('buyAndSellBd').collection('sellers');
 
 
         app.get('/categories', async (req, res) => {
@@ -83,11 +84,24 @@ async function run() {
             const users = await usersCollection.find(query).toArray();
             res.send(users);
         })
+        
 
         
         app.post('/users', async(req, res)=> {
             const user = req.body;
             const result = await usersCollection.insertOne(user);
+            res.send(result);
+        })
+
+        app.get('/sellers', async(req, res)=> {
+            const query = {};
+            const users = await sellersCollection.find(query).toArray();
+            res.send(users);
+        })
+
+        app.post('/sellers', async(req, res)=> {
+            const user = req.body;
+            const result = await sellersCollection.insertOne(user);
             res.send(result);
         })
         
